@@ -1,4 +1,4 @@
-# COSE212 Programming Languages 2016 - Homework 4
+# Programming Languages 2016 - Homework 4
 
 ## Goal
 The goal of this homework is to build an interpreter for "letrec" language with implicit references.
