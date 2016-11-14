@@ -1,9 +1,8 @@
 # Programming Languages 2016 - Homework 4
 
 ## Goal
-The goal of this homework is to build an interpreter for "letrec" language with implicit references.
-The syntax and semantics of the language are defined in "hw4.pdf" with some holes for the definition of the semantics
-which should be completed by yourself.
+The goal of this homework is to build an interpreter for the "letrec" language with implicit references.
+The syntax and semantics of the language are defined in "hw4.pdf" with some holes which should be completed by yourself.
 
 ## Specification
 - Implement the ***eval*** function in the "m.ml".
@@ -19,10 +18,10 @@ which should be completed by yourself.
 ## Compilation and Execution
 Compile and execute the interpreter as follows:
 ```
-  make  (* for compilation *)
+  make                (* for compilation *)
   ./run test/proc1.m  (* running the interpreter *)
 ```
-Make sure that you are on the top of the project directory (where "m.ml" exists) before compilation.
+Make sure that you are on the top of the project directory where the file "m.ml" exists before compilation.
 
 ## How to Submit
-Submit the single file "m.ml" via Blackboard. Note that codes which are not compilable will be get zero points.
+Submit the single file "m.ml" via Blackboard. Note that codes which are not compilable will be get zero point.
