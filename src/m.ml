@@ -68,7 +68,89 @@ let rec eval : exp -> env -> mem -> value * mem
 =fun exp env mem -> 
   match exp with
   | CONST n -> (Int n, mem)
-  | _ -> raise (Failure "Unimplemented")
+  | VAR x ->  (apply_mem mem (apply_env env x), mem)
+  | ADD (e1, e2) ->
+    let (v1, m1) = eval e1 env mem in
+    let (v2, m2) = eval e2 env m1 in
+      (match v1, v2 with
+      | Int n1, Int n2 -> (Int (n1 + n2), m2)
+      | _ -> raise UndefSemantics)
+  | SUB (e1, e2) ->
+    let (v1, m1) = eval e1 env mem in
+    let (v2, m2) = eval e2 env m1 in
+      (match v1, v2 with
+      | Int n1, Int n2 -> (Int (n1 - n2), m2)
+      | _ -> raise UndefSemantics)
+  | MUL (e1, e2) ->
+    let (v1, m1) = eval e1 env mem in
+    let (v2, m2) = eval e2 env m1 in
+      (match v1, v2 with
+      | Int n1, Int n2 -> (Int (n1 * n2), m2)
+      | _ -> raise UndefSemantics)
+  | DIV (e1, e2) ->
+    let (v1, m1) = eval e1 env mem in
+    let (v2, m2) = eval e2 env m1 in
+      (match v1, v2 with
+      | Int n1, Int n2 -> (Int (n1 / n2), m2)
+      | _ -> raise UndefSemantics)
+  | ISZERO e ->
+    let (v, m) = eval e env mem in
+      (match v with
+      | Int n -> if n = 0 then (Bool true, m) else (Bool false, m)
+      | _ -> raise UndefSemantics)
+  | READ -> (Int (read_int()), mem)
+  | IF (e1, e2, e3) ->
+    let (v1, m1) = eval e1 env mem in
+      (match v1 with
+      | Bool true -> eval e2 env m1
+      | Bool false -> eval e3 env m1
+      | _ -> raise UndefSemantics)
+  | LET (x, e1, e2) ->
+    let loc = new_location() in
+    let (v1, m1) = eval e1 env mem in
+    let env' = extend_env (x, loc) env in
+    let m1' = extend_mem (loc, v1) m1 in
+      eval e2 env' m1'
+  | LETREC (f, x, e1, e2) ->
+    let loc = new_location() in
+    let env' = extend_env (f, loc) env in
+    let mem' = extend_mem (loc, RecClosure (f, x, e1, env)) mem in
+      eval e2 env' mem'
+  | PROC (x, e) -> (Closure (x, e, env), mem)
+  | CALL (e1, e2) ->
+    let loc = new_location() in
+    let (v1, m1) = eval e1 env mem in
+    let (v2, m2) = eval e2 env m1 in
+      (match v1 with
+      | Closure (x, e, env') ->
+        let env'' = extend_env (x, loc) env' in
+        let m2' = extend_mem (loc, v2) m2 in
+          eval e env'' m2'
+      | RecClosure (f, x, e, env') ->
+        let loc' = new_location() in
+        let env'' = extend_env (f, loc') (extend_env (x, loc) env') in
+        let m2' = extend_mem (loc', v1) (extend_mem (loc, v2) m2) in
+          eval e env'' m2'
+      | _ -> raise UndefSemantics)
+  | CALLREF (e1, y) ->
+    let (v, m1) = eval e1 env mem in
+      (match v with
+      | Closure (x, e, env') ->
+        let env'' = extend_env (x, apply_env env y) env' in
+          eval e env'' m1
+      | RecClosure (f, x, e, env') ->
+        let loc = new_location() in
+        let env'' = extend_env (f, loc) (extend_env (x, apply_env env y) env') in
+        let m1' = extend_mem (loc, v) m1 in
+          eval e env'' m1'
+      | _ -> raise UndefSemantics)
+  | SET (x, e) ->
+    let (v, m1) = eval e env mem in
+      (v, extend_mem (apply_env env x, v) m1)
+  | SEQ (e1, e2) ->
+    let (v1, m1) = eval e1 env mem in
+      eval e2 env m1
+  | BEGIN e -> eval e env mem
 
 let run : program -> value
 =fun pgm -> 
